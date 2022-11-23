@@ -1,0 +1,230 @@
+[
+    {
+        "id": "ec76c5c0246b2ee7",
+        "type": "tab",
+        "label": "EveractiveLastReading",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "3a7c6f0c10fe99e4",
+        "type": "http request",
+        "z": "ec76c5c0246b2ee7",
+        "name": "auth",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://dev-api.data.everactive.com/auth/token",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 230,
+        "y": 280,
+        "wires": [
+            [
+                "f89dc37fe6245e84"
+            ]
+        ]
+    },
+    {
+        "id": "82f801e04723fe07",
+        "type": "inject",
+        "z": "ec76c5c0246b2ee7",
+        "name": "creds",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"client_id\":\"PUT_YOUR_CLIENT_ID_HERE\",\"client_secret\":\"PUT_YOUR_SECRET_HERE\",\"grant_type\":\"client_credentials\"}",
+        "payloadType": "json",
+        "x": 110,
+        "y": 120,
+        "wires": [
+            [
+                "3a7c6f0c10fe99e4",
+                "6c7bee140c05aefc"
+            ]
+        ]
+    },
+    {
+        "id": "78a5382d1a9e798d",
+        "type": "http request",
+        "z": "ec76c5c0246b2ee7",
+        "name": "sensors",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://dev-api.data.everactive.com/ds/v1/eversensors",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 540,
+        "y": 280,
+        "wires": [
+            [
+                "32da7ebce88ee376"
+            ]
+        ]
+    },
+    {
+        "id": "f89dc37fe6245e84",
+        "type": "function",
+        "z": "ec76c5c0246b2ee7",
+        "name": "token",
+        "func": "msg.headers = {\n    Authorization: \"Bearer \" + msg.payload.access_token\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 280,
+        "wires": [
+            [
+                "78a5382d1a9e798d"
+            ]
+        ]
+    },
+    {
+        "id": "500ceb8a7b8fb922",
+        "type": "split",
+        "z": "ec76c5c0246b2ee7",
+        "name": "foreach",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "payload",
+        "x": 420,
+        "y": 380,
+        "wires": [
+            [
+                "2147f3a19c2cb86e"
+            ]
+        ]
+    },
+    {
+        "id": "d42a49c08c2a6945",
+        "type": "debug",
+        "z": "ec76c5c0246b2ee7",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 800,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "32da7ebce88ee376",
+        "type": "change",
+        "z": "ec76c5c0246b2ee7",
+        "name": "data",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.data",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 250,
+        "y": 380,
+        "wires": [
+            [
+                "500ceb8a7b8fb922"
+            ]
+        ]
+    },
+    {
+        "id": "2147f3a19c2cb86e",
+        "type": "function",
+        "z": "ec76c5c0246b2ee7",
+        "name": "compareTemps",
+        "func": "var weather = flow.get('weather');\nvar sensorTemp = msg.payload.lastReading.temperatureMeasurements[0].value;\nvar sensorMAC = msg.payload.lastReading.macAddress;\nmsg.payload = {\n    forecast_temp_max: weather.main.temp_max,\n    forecast_temp_min: weather.main.temp_min,\n    sensor_temp: sensorTemp,\n    sensor_mac: sensorMAC,\n    msg: \"\"\n}\nif(weather === undefined){\n    node.warn(\"no weather data\");    \n    return msg;\n}else{\n    if(sensorTemp > weather.main.temp_max){\n        msg.payload.msg=\"it's getting hot in here\";\n    } else if(sensorTemp < weather.main.temp_min){\n        msg.payload.msg=\"I'm freezing over here!\";\n    }else{\n        msg.payload.msg=\"just peachy\";\n    }    \n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 620,
+        "y": 380,
+        "wires": [
+            [
+                "d42a49c08c2a6945"
+            ]
+        ]
+    },
+    {
+        "id": "6c7bee140c05aefc",
+        "type": "http request",
+        "z": "ec76c5c0246b2ee7",
+        "name": "getWeatherData",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://api.openweathermap.org/data/2.5/weather?lat=37.3597&lon=-121.9947&appid=YOUR_API_KEY",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "credentials": {
+            "user": "",
+            "password": ""
+        },
+        "x": 420,
+        "y": 160,
+        "wires": [
+            [
+                "dfbbd76a422e8893"
+            ]
+        ]
+    },
+    {
+        "id": "dfbbd76a422e8893",
+        "type": "function",
+        "z": "ec76c5c0246b2ee7",
+        "name": "storeWeather",
+        "func": "var weather = msg.payload;\nflow.set('weather', weather);\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    }
+]
