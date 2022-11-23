@@ -15,7 +15,7 @@
         "method": "POST",
         "ret": "obj",
         "paytoqs": "ignore",
-        "url": "https://dev-api.data.everactive.com/auth/token",
+        "url": "https://api.data.everactive.com/auth/token",
         "tls": "",
         "persist": false,
         "proxy": "",
@@ -65,7 +65,7 @@
         "method": "GET",
         "ret": "obj",
         "paytoqs": "ignore",
-        "url": "https://dev-api.data.everactive.com/ds/v1/eversensors",
+        "url": "https://api.data.everactive.com/ds/v1/eversensors",
         "tls": "",
         "persist": false,
         "proxy": "",
@@ -198,10 +198,6 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "credentials": {
-            "user": "",
-            "password": ""
-        },
         "x": 420,
         "y": 160,
         "wires": [
